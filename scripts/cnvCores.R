@@ -1,3 +1,19 @@
+args <- commandArgs(trailingOnly = TRUE)
+
+event <- NA # Should be A (for amplficcation, or D for deletion
+outputCsv <- "coreTable.csv"
+outputObj <- "newCOREobj.rds"
+if (length(args) == 1){
+	event <- args[1]
+} else if (length(args) == 2){
+	event <- args[1]
+	outputCsv <- args[2]	
+} else if (length(args) == 3){
+	event <- args[1]
+	outputCsv <- args[2]
+	outputObj <- args[3]
+}
+
 # Import librariesdd
 library(CORE)
 
@@ -10,7 +26,6 @@ cd_home <- function() {
 cd_home()
 samples <- read.table("./resources/sampleList.csv", header=T, sep = "\t", stringsAsFactors = F)
 classes <- c("N")
-event <- "A" # A - amplification, D - deletion
 
 loaded_samples <- c(NA)
 loaded_samples.index <- 1
@@ -139,10 +154,15 @@ myCOREobj<-CORE(dataIn=inputCORE, maxmark=10, nshuffle=0,
 newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
                  nshuffle=50,distrib="Rparallel",njobs=4)
 
-print("Ran CORE")
-#newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
-# nshuffle=20,distrib="Grid",njobs=2)
 
+newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
+ nshuffle=20,distrib="Grid",njobs=2)
+
+print("ran CORE")
+
+saveRDS(newCOREobj, outputObj)
+
+print(paste("Saved CORE obj to", outputObj, sep = ""))
 
 # TODO: Deal with a female XX case (does it matter though?)
 rescaleOutput <- function(cores, chromosomeSizes){
@@ -178,5 +198,10 @@ rescaleOutput <- function(cores, chromosomeSizes){
 coreTable <- data.frame(myCOREobj$coreTable)
 coreTable <- rescaleOutput(coreTable, chromosomeSizes)
 coreTable$chrom <- paste("chr", coreTable$chrom, sep = "")
+
+write.csv(coreTable, outputCsv)
+
+print(paste("Saved coreTable as", outputCsv, sep = ""))
+
 
 print("done")
