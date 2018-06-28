@@ -1,6 +1,6 @@
 args <- commandArgs(trailingOnly = TRUE)
 
-event <- NA # Should be A (for amplficcation, or D for deletion
+event <- "A" # Should be A (for amplficcation, or D for deletion
 outputCsv <- "coreTable.csv"
 outputObj <- "newCOREobj.rds"
 if (length(args) == 1){
@@ -81,29 +81,34 @@ generateInputCORE <- function(chromosomeSizes){
   loaded_segments <- list(NA)
   loaded_segments.index <- 1
   for(sample in loaded_samples){
-    segments <- as.data.frame(read.table(paste("./resources/Project_TUV_12995_B01_SOM_Targeted.2018-03-02/Sample_", sample, "/analysis/structural_variants/", sample, "--NA12878.cnv.facets.v0.5.2.txt", sep = ""), header = TRUE, sep="\t", stringsAsFactors=FALSE, quote=""))  
-    head(segments)
+    segments <- as.data.frame(read.table(paste("./resources/mappedFacetsFiles/", sample, "--NA12878.mapped.cnv.facets.v0.5.2.bed", sep = ""), header = TRUE, sep=",", stringsAsFactors=FALSE, quote=""))  
     if(event == "A"){
-      segments <- segments[segments$X.cnlr.median. > 0.2,]  
+      segments <- segments[segments$X.cnlr. > 0.2,]  
     } else if (event == "D"){
-      segments <- segments[segments$X.cnlr.median. < -0.235,]  
+      segments <- segments[segments$X.cnlr. < -0.235,]  
+    } else {
+      print("No event selected.")
     }
     
-    segments <- segments[,c(1, 10, 11)]
+    print(head(segments))
+    segments <- segments[,c(1, 2, 3)]
+
     names(segments) <- c("chrom", "start", "end")
-    segments <- rescaleInput(segments, chromosomeSizes)
+    #segments <- rescaleInput(segments, chromosomeSizes)
     
     dataInputCORE <- rbind(dataInputCORE, segments)
   }
   
   # TODO: SKIPPING X AND Y DUE TO INPUT FORMAT ERROR (not accepting string as chr)
-  returnme <- dataInputCORE[dataInputCORE$chrom != "X" & dataInputCORE$chrom != "Y",]
+  returnme <-  cbind(dataInputCORE)
   returnme$chrom <- as.numeric(returnme$chrom)
   return(returnme)
 }
 
 # TODO: Need to verify results - check with Pascal
 inputCORE <- generateInputCORE(chromosomeSizes)
+print("Printing inputCORE")
+print(inputCORE)
 
 print("generated input for CORE")
 
@@ -148,11 +153,13 @@ print("generated boundary input for CORE")
 #Compute 3 cores and perform no randomization
 #(meaningless for estimate of significance).
 
-myCOREobj<-CORE(dataIn=inputCORE, maxmark=10, nshuffle=0,
-                boundaries=inputBoundaries,seedme=123)
+saveRDS(inputCORE, "inputCORE.rds")
 
-newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
-                 nshuffle=50,distrib="Rparallel",njobs=4)
+myCOREobj<-CORE(dataIn=inputCORE, maxmark=10, nshuffle=0, seedme=123)
+
+print("Ran first CORE run")
+#newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
+#                 nshuffle=50,distrib="Rparallel",njobs=4)
 
 
 newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
@@ -191,9 +198,7 @@ rescaleOutput <- function(cores, chromosomeSizes){
   return(cores)
 }
 
-#install.packages("devtools")
-#library(devtools)
-#install_github("wefang/ghelper")
+
 
 coreTable <- data.frame(myCOREobj$coreTable)
 coreTable <- rescaleOutput(coreTable, chromosomeSizes)
