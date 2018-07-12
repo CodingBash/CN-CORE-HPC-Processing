@@ -43,3 +43,5 @@ rsconnect/
 /resources
 *.o*
 *.e*
+/hT_output
+/output

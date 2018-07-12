@@ -3,6 +3,7 @@ args <- commandArgs(trailingOnly = TRUE)
 event <- "A" # Should be A (for amplficcation, or D for deletion
 outputCsv <- "coreTable.csv"
 outputObj <- "newCOREobj.rds"
+class <- "N"
 if (length(args) == 1){
 	event <- args[1]
 } else if (length(args) == 2){
@@ -12,6 +13,11 @@ if (length(args) == 1){
 	event <- args[1]
 	outputCsv <- args[2]
 	outputObj <- args[3]
+} else if (length(args) == 4){
+        event <- args[1]
+        outputCsv <- args[2]
+        outputObj <- args[3]
+	class <- args[4]	
 }
 
 # Import librariesdd
@@ -25,7 +31,7 @@ cd_home <- function() {
 
 cd_home()
 samples <- read.table("./resources/sampleList.csv", header=T, sep = "\t", stringsAsFactors = F)
-classes <- c("N")
+classes <- c(class)
 
 loaded_samples <- c(NA)
 loaded_samples.index <- 1
@@ -101,6 +107,8 @@ generateInputCORE <- function(chromosomeSizes){
   
   # TODO: SKIPPING X AND Y DUE TO INPUT FORMAT ERROR (not accepting string as chr)
   returnme <-  cbind(dataInputCORE)
+  if(length(returnme[returnme$chrom == 'X',]$chrom) > 0) returnme[returnme$chrom == 'X',]$chrom <- "23"
+  if(length(returnme[returnme$chrom == 'Y',]$chrom) > 0) returnme[returnme$chrom == 'Y',]$chrom <- "24"
   returnme$chrom <- as.numeric(returnme$chrom)
   return(returnme)
 }
@@ -141,7 +149,9 @@ rescaleBoundaries <- function(chromosomeSizes){
   }
   
   # TODO: SKIPPING X AND Y DUE TO INPUT FORMAT ERROR (not accepting string as chr)
-  returnme <- boundaries[boundaries$chrom != "X" & boundaries$chrom != "Y",]
+  returnme <- cbind(boundaries)
+  if(length(returnme[returnme$chrom == 'X',]$chrom) > 0) returnme[returnme$chrom == 'X',]$chrom <- "23"
+  if(length(returnme[returnme$chrom == 'Y',]$chrom) > 0) returnme[returnme$chrom == 'Y',]$chrom <- "24"
   returnme$chrom <- as.numeric(returnme$chrom)
   
   return(returnme)
@@ -163,7 +173,7 @@ print("Ran first CORE run")
 
 
 newCOREobj<-CORE(dataIn=myCOREobj,keep=c("maxmark","seedme","boundaries"),
- nshuffle=20,distrib="Grid",njobs=2)
+ nshuffle=500,distrib="Grid",njobs=2)
 
 print("ran CORE")
 

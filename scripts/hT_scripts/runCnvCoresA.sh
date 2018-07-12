@@ -11,5 +11,5 @@ module load RBio/3.6.0
 
 pwd
 date
-Rscript cnvCores.R D output/DcoreTable.csv output/DnewCOREobj.rds
+Rscript ../cnvCores.R A hT_output/AcoreTable.csv hT_output/AnewCOREobj.rds T
 date
