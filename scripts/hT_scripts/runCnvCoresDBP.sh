@@ -11,5 +11,5 @@ module load RBio/3.6.0
 
 pwd
 date
-Rscript ../cnvCoresBP.R D hT_output/DcoreTableBP.csv hT_output/DnewCOREobjBP.rds T
+Rscript ../coreGenerationHPCJobBP.R D hT_output/DcoreTableBP.csv hT_output/DnewCOREobjBP.rds T
 date
