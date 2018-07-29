@@ -26,9 +26,12 @@ setwd("~/code/hN_core_artifacts/scripts")
 source("coreGenerationLibrary.R")
 source("helperFunctions.R")
 
-events <- c(event)
+# OVERWRITING EVENTS TO USE BOTH A and D
+# TODO: Include both events via cmd line argument
+events <- c("A", "D")
 sample_dir <- "resources/FACETS_Reference_hN31_7_28_18_2/"
 reference <- "hN31"
+
 #
 # Get CORE input
 #
